@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -77,11 +78,7 @@ public class ChatService {
                     .stream()
                     .chatClientResponse()
                     .subscribe(
-                            (response) -> {
-                                var resp = response.chatResponse().getResult().getOutput().getText();
-                                chatResponse.append(resp);
-                                processToken(resp, sseEmitter);
-                            },
+                            (response) -> processToken(response.chatResponse(), sseEmitter, chatResponse),
                             sseEmitter::completeWithError,
                             () -> {
                                 var assistantMessage = ChatEntry.builder()
@@ -98,7 +95,11 @@ public class ChatService {
     }
 
     @SneakyThrows
-    private void processToken(Object response, SseEmitter sseEmitter) {
-        sseEmitter.send(response);
+    private void processToken(ChatResponse response, SseEmitter sseEmitter, StringBuffer responseBuilder) {
+        var resp = response.getResult().getOutput().getText();
+        if (resp != null) {
+            sseEmitter.send(resp);
+            responseBuilder.append(resp);
+        }
     }
 }
