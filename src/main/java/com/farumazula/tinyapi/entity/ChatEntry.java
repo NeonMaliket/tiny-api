@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  **/
 
 @Data
-@Document(collation = "chat_entries")
+@Document("chat_entries")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

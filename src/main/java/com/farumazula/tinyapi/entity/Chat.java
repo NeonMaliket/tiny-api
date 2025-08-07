@@ -16,7 +16,7 @@ import java.util.List;
  **/
 
 @Data
-@Document(collation = "chats")
+@Document("chats")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
