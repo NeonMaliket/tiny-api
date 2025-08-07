@@ -1,8 +1,6 @@
 package com.farumazula.tinyapi.controller;
 
-import com.farumazula.tinyapi.dto.ChatDto;
-import com.farumazula.tinyapi.dto.NewChatDto;
-import com.farumazula.tinyapi.dto.SimpleChatDto;
+import com.farumazula.tinyapi.dto.*;
 import com.farumazula.tinyapi.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -56,5 +54,13 @@ public class ChatController {
         log.debug("deleteChatById {}", chatId);
         chatService.deleteChat(chatId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/send/prompt")
+    public ResponseEntity<ChatMessageDto> sendPrompt(@RequestBody NewChatMessageDto chatMessageDto) {
+        log.debug("sendChatMessage {}", chatMessageDto);
+        return chatService.sendPrompt(chatMessageDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

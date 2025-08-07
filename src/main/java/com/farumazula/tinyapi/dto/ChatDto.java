@@ -15,13 +15,13 @@ public record ChatDto(
         String id,
         String title,
         LocalDateTime createdAt,
-        List<ChatEntryDto> history
+        List<ChatMessageDto> history
 ) {
 
     public static ChatDto from(Chat chat) {
         var history = chat.getHistory()
                 .stream()
-                .map(ChatEntryDto::from)
+                .map(ChatMessageDto::from)
                 .toList();
         return ChatDto.builder()
                 .id(chat.getId())

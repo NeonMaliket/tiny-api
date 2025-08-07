@@ -1,8 +1,6 @@
 package com.farumazula.tinyapi.service;
 
-import com.farumazula.tinyapi.dto.ChatDto;
-import com.farumazula.tinyapi.dto.NewChatDto;
-import com.farumazula.tinyapi.dto.SimpleChatDto;
+import com.farumazula.tinyapi.dto.*;
 import com.farumazula.tinyapi.repository.ChatRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -54,5 +52,18 @@ public class ChatService {
     public void deleteChat(String chatId) {
         log.info("Deleting chat with id: {}", chatId);
         chatRepository.deleteById(chatId);
+    }
+
+    public Optional<ChatMessageDto> sendPrompt(NewChatMessageDto newChatMessageDto) {
+        log.info("Sending chat prompt {}", newChatMessageDto);
+        var chat = chatRepository.findById(newChatMessageDto.chatId());
+        if (chat.isPresent()) {
+            var localChat = chat.get();
+            var message = newChatMessageDto.buildMessage();
+            localChat.addMessage(message);
+            chatRepository.save(localChat);
+            return Optional.of(ChatMessageDto.from(message));
+        }
+        return Optional.empty();
     }
 }
