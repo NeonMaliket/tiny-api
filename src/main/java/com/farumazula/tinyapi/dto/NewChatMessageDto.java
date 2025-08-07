@@ -16,7 +16,7 @@ public record NewChatMessageDto(
         String prompt
 ) {
 
-    public ChatEntry buildMessage() {
+    public ChatEntry asUserMessage() {
         return ChatEntry.builder()
                 .id(UUID.randomUUID().toString())
                 .author(ChatEntryAuthor.USER)

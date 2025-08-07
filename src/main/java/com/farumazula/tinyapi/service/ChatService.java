@@ -1,14 +1,23 @@
 package com.farumazula.tinyapi.service;
 
-import com.farumazula.tinyapi.dto.*;
+import com.farumazula.tinyapi.dto.ChatDto;
+import com.farumazula.tinyapi.dto.NewChatDto;
+import com.farumazula.tinyapi.dto.NewChatMessageDto;
+import com.farumazula.tinyapi.dto.SimpleChatDto;
+import com.farumazula.tinyapi.entity.ChatEntry;
+import com.farumazula.tinyapi.entity.ChatEntryAuthor;
 import com.farumazula.tinyapi.repository.ChatRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Ma1iket
@@ -20,6 +29,7 @@ import java.util.Optional;
 public class ChatService {
 
     private final ChatRepository chatRepository;
+    private final ChatClient chatClient;
 
     public List<SimpleChatDto> findAllChats() {
         log.debug("findAllChats");
@@ -54,16 +64,41 @@ public class ChatService {
         chatRepository.deleteById(chatId);
     }
 
-    public Optional<ChatMessageDto> sendPrompt(NewChatMessageDto newChatMessageDto) {
+    public SseEmitter proceedInteraction(NewChatMessageDto newChatMessageDto) {
         log.info("Sending chat prompt {}", newChatMessageDto);
+        var sseEmitter = new SseEmitter();
+        var chatResponse = new StringBuffer();
         var chat = chatRepository.findById(newChatMessageDto.chatId());
-        if (chat.isPresent()) {
-            var localChat = chat.get();
-            var message = newChatMessageDto.buildMessage();
-            localChat.addMessage(message);
+        chat.ifPresent(localChat -> {
+            localChat.addMessage(newChatMessageDto.asUserMessage());
             chatRepository.save(localChat);
-            return Optional.of(ChatMessageDto.from(message));
-        }
-        return Optional.empty();
+
+            chatClient.prompt(newChatMessageDto.prompt())
+                    .stream()
+                    .chatClientResponse()
+                    .subscribe(
+                            (response) -> {
+                                var resp = response.chatResponse().getResult().getOutput().getText();
+                                chatResponse.append(resp);
+                                processToken(resp, sseEmitter);
+                            },
+                            sseEmitter::completeWithError,
+                            () -> {
+                                var assistantMessage = ChatEntry.builder()
+                                        .id(UUID.randomUUID().toString())
+                                        .author(ChatEntryAuthor.ASSISTANT)
+                                        .content(chatResponse.toString())
+                                        .build();
+                                localChat.addMessage(assistantMessage);
+                                chatRepository.save(localChat);
+                            }
+                    );
+        });
+        return sseEmitter;
+    }
+
+    @SneakyThrows
+    private void processToken(Object response, SseEmitter sseEmitter) {
+        sseEmitter.send(response);
     }
 }

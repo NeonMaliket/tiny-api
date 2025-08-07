@@ -4,8 +4,10 @@ import com.farumazula.tinyapi.dto.*;
 import com.farumazula.tinyapi.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -56,11 +58,9 @@ public class ChatController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/send/prompt")
-    public ResponseEntity<ChatMessageDto> sendPrompt(@RequestBody NewChatMessageDto chatMessageDto) {
+    @PostMapping(value = "/send/prompt", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter sendPrompt(@RequestBody NewChatMessageDto chatMessageDto) {
         log.debug("sendChatMessage {}", chatMessageDto);
-        return chatService.sendPrompt(chatMessageDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return chatService.proceedInteraction(chatMessageDto);
     }
 }
