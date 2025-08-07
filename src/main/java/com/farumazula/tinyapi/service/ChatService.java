@@ -37,7 +37,7 @@ public class ChatService {
 
     public Optional<ChatDto> findLastChat() {
         log.debug("findLastChat");
-        return chatRepository.findLastChat().map(ChatDto::from);
+        return chatRepository.findTopByOrderByCreatedAtDesc().map(ChatDto::from);
     }
 
     public Optional<ChatDto> findChatById(String id) {

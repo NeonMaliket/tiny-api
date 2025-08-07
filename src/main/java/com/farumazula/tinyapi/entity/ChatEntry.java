@@ -24,6 +24,6 @@ public class ChatEntry {
     private String id;
     private String content;
     @CreatedDate
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
     private ChatEntryAuthor author;
 }

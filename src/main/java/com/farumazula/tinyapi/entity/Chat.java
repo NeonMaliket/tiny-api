@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,5 +28,6 @@ public class Chat {
     private String title;
     @CreatedDate
     private LocalDateTime createdAt;
-    private List<ChatEntry> history;
+    @Builder.Default
+    private List<ChatEntry> history = new ArrayList<>();
 }

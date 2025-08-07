@@ -25,7 +25,7 @@ public class ChatController {
 
     @GetMapping("/all")
     public ResponseEntity<List<SimpleChatDto>> findAllChats() {
-        log.debug("findAllChats");
+        log.info("findAllChats");
         return ResponseEntity.ok(chatService.findAllChats());
     }
 
@@ -39,7 +39,7 @@ public class ChatController {
 
     @GetMapping("/last")
     public ResponseEntity<ChatDto> findLastChat() {
-        log.debug("findLastChat");
+        log.info("findLastChat");
         return chatService.findLastChat()
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
