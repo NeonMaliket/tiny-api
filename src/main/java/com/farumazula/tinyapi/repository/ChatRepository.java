@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,6 +18,6 @@ public interface ChatRepository extends MongoRepository<Chat, String> {
     Optional<Chat> findTopByOrderByCreatedAtDesc();
 
     @Query("{ _id: ?0 }")
-    @Update("{ $push: { history: ?1 } }")
-    void addChatEntry(String chatId, ChatEntry chatEntry);
+    @Update("{ $push: { history: {$each: ?1} } }")
+    void addChatEntries(String chatId, List<ChatEntry> chatEntry);
 }

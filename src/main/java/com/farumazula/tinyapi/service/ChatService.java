@@ -1,12 +1,15 @@
 package com.farumazula.tinyapi.service;
 
-import com.farumazula.tinyapi.dto.*;
-import com.farumazula.tinyapi.entity.ChatEntryAuthor;
+import com.farumazula.tinyapi.dto.ChatDto;
+import com.farumazula.tinyapi.dto.NewChatDto;
+import com.farumazula.tinyapi.dto.NewChatMessageDto;
+import com.farumazula.tinyapi.dto.SimpleChatDto;
 import com.farumazula.tinyapi.repository.ChatRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -14,7 +17,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * @author Ma1iket
@@ -56,13 +58,6 @@ public class ChatService {
         return SimpleChatDto.from(saved);
     }
 
-    public void addChatEntry(String chatId, ChatMessageDto chatMessageDto) {
-        log.debug("addChatEntry");
-        var entry = chatMessageDto.toEntry();
-        entry.setId(UUID.randomUUID().toString());
-        chatRepository.addChatEntry(chatId, entry);
-    }
-
     public void deleteChat(String chatId) {
         log.info("Deleting chat with id: {}", chatId);
         chatRepository.deleteById(chatId);
@@ -70,35 +65,30 @@ public class ChatService {
 
     public SseEmitter proceedInteraction(NewChatMessageDto newChatMessageDto) {
         log.info("Sending chat prompt {}", newChatMessageDto);
-        var sseEmitter = new SseEmitter();
-        var chatResponse = new StringBuffer();
+        var sseEmitter = new SseEmitter(0L);
+        var chatResponse = new StringBuilder();
         var chatId = newChatMessageDto.chatId();
-        addChatEntry(chatId, ChatMessageDto.from(newChatMessageDto.asUserMessage()));
 
         chatClient.prompt(newChatMessageDto.prompt())
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .stream()
-                .chatClientResponse()
+                .chatResponse()
                 .subscribe(
-                        (response) -> processToken(response.chatResponse(), sseEmitter, chatResponse),
+                        response -> processToken(response, sseEmitter, chatResponse),
                         sseEmitter::completeWithError,
-                        () -> {
-                            var assistantMessage = ChatMessageDto.builder()
-                                    .author(ChatEntryAuthor.ASSISTANT.getValue())
-                                    .content(chatResponse.toString())
-                                    .build();
-
-                            addChatEntry(chatId, assistantMessage);
-                        }
+                        sseEmitter::complete
                 );
         return sseEmitter;
     }
 
     @SneakyThrows
-    private void processToken(ChatResponse response, SseEmitter sseEmitter, StringBuffer responseBuilder) {
+    private void processToken(ChatResponse response, SseEmitter sseEmitter, StringBuilder responseBuilder) {
         var resp = response.getResult().getOutput().getText();
         if (resp != null) {
             sseEmitter.send(resp);
             responseBuilder.append(resp);
+        } else {
+            log.warn("No response from chat service");
         }
     }
 }
