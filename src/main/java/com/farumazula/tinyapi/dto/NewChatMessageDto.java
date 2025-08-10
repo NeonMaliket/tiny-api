@@ -1,10 +1,8 @@
 package com.farumazula.tinyapi.dto;
 
-import com.farumazula.tinyapi.entity.ChatEntry;
-import com.farumazula.tinyapi.entity.ChatEntryAuthor;
 import lombok.Builder;
-
-import java.util.UUID;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.prompt.Prompt;
 
 /**
  * @author Ma1iket
@@ -16,11 +14,11 @@ public record NewChatMessageDto(
         String prompt
 ) {
 
-    public ChatEntry asUserMessage() {
-        return ChatEntry.builder()
-                .id(UUID.randomUUID().toString())
-                .author(ChatEntryAuthor.USER)
-                .content(prompt)
+    public Prompt asPrompt() {
+        return Prompt.builder()
+                .messages(UserMessage.builder()
+                        .text(prompt)
+                        .build())
                 .build();
     }
 

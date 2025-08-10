@@ -66,15 +66,19 @@ public class ChatService {
     public SseEmitter proceedInteraction(NewChatMessageDto newChatMessageDto) {
         log.info("Sending chat prompt {}", newChatMessageDto);
         var sseEmitter = new SseEmitter(0L);
+        sseEmitter.onCompletion(() -> log.info("Chat interaction completed"));
         var chatResponse = new StringBuilder();
         var chatId = newChatMessageDto.chatId();
 
-        chatClient.prompt(newChatMessageDto.prompt())
+        chatClient.prompt(newChatMessageDto.asPrompt())
                 .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .stream()
                 .chatResponse()
                 .subscribe(
-                        response -> processToken(response, sseEmitter, chatResponse),
+                        response -> {
+                            log.info("Chat response {}", response);
+                            processToken(response, sseEmitter, chatResponse);
+                        },
                         sseEmitter::completeWithError,
                         sseEmitter::complete
                 );

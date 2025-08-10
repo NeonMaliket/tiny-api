@@ -37,9 +37,8 @@ public class MongoChatMemory implements ChatMemory {
         var messages = chat.get().getHistory();
 
         return messages.stream()
-                .sorted(Comparator.comparing(ChatEntry::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(ChatEntry::getCreatedAt))
                 .map(ChatEntry::toMessage)
-                .limit(maxMessages)
                 .toList();
     }
 
