@@ -4,6 +4,8 @@ import com.farumazula.tinyapi.dto.ChatDto;
 import com.farumazula.tinyapi.dto.NewChatDto;
 import com.farumazula.tinyapi.dto.NewChatMessageDto;
 import com.farumazula.tinyapi.dto.SimpleChatDto;
+import com.farumazula.tinyapi.entity.ChatEntry;
+import com.farumazula.tinyapi.entity.ChatEntryAuthor;
 import com.farumazula.tinyapi.repository.ChatRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -17,6 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Ma1iket
@@ -66,22 +69,29 @@ public class ChatService {
     public SseEmitter proceedInteraction(NewChatMessageDto newChatMessageDto) {
         log.info("Sending chat prompt {}", newChatMessageDto);
         var sseEmitter = new SseEmitter(0L);
-        sseEmitter.onCompletion(() -> log.info("Chat interaction completed"));
         var chatResponse = new StringBuilder();
         var chatId = newChatMessageDto.chatId();
 
-        chatClient.prompt(newChatMessageDto.asPrompt())
+        chatClient.prompt(newChatMessageDto.prompt())
                 .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .stream()
                 .chatResponse()
                 .subscribe(
                         response -> {
-                            log.info("Chat response {}", response);
+                            log.info("Chat response {}", response.getResult().getOutput().getText());
                             processToken(response, sseEmitter, chatResponse);
                         },
                         sseEmitter::completeWithError,
                         sseEmitter::complete
                 );
+        chatRepository.findById(chatId).ifPresent(chat -> {
+            chat.addMessage(ChatEntry.builder()
+                    .id(UUID.randomUUID().toString())
+                    .author(ChatEntryAuthor.ASSISTANT)
+                    .content(chatResponse.toString())
+                    .build());
+            chatRepository.save(chat);
+        });
         return sseEmitter;
     }
 

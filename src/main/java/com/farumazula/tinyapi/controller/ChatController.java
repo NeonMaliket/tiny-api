@@ -1,6 +1,9 @@
 package com.farumazula.tinyapi.controller;
 
-import com.farumazula.tinyapi.dto.*;
+import com.farumazula.tinyapi.dto.ChatDto;
+import com.farumazula.tinyapi.dto.NewChatDto;
+import com.farumazula.tinyapi.dto.NewChatMessageDto;
+import com.farumazula.tinyapi.dto.SimpleChatDto;
 import com.farumazula.tinyapi.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

@@ -25,6 +25,7 @@ public class MongoChatMemory implements ChatMemory {
                 messages
                         .stream()
                         .map(ChatEntry::fromMessage)
+                        .filter(chatEntry -> !chatEntry.getContent().isEmpty())
                         .toList());
     }
 

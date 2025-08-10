@@ -1,0 +1,31 @@
+🤔 Shortcomings of WebAssembly for Smart Contracts
+From ink! v1 to v5, the execution platform was Substrate's smart contracts module pallet-contracts. This pallet required the smart contracts that were uploaded to be in the WebAssembly (Wasm) bytecode format. So ink! contracts were always compiled to a WebAssembly binary. This could be done by invoking cargo build/rustc directly or via our CLI tool cargo-contract (which executes the Rust compiler with optimal flags for smart contracts).
+
+As an ongoing research project Parity was always looking at alternatives to WebAssembly for smart contract execution. Some of those investigations are persisted in the Polkadot Forum. The forum post on the eBPF investigation (eBPF is used in Solana) highlights some shortcomings of WebAssembly for smart contracts.
+
+🧑‍🔬 RISC-V + PolkaVM
+During 2023, Parity core developer Jan Bujak (@koute) did another exploration on alternatives for WebAssembly. His forum post gives a great overview on how he landed at RISC-V and its potential. His explorations yielded promising results and a new project was started: PolkaVM (the announcement contains more info). PolkaVM is intended to be a very fast RISC-V based virtual machine. Jan regularly shared performance benchmarks in the Polkadot Forum. Those were very good and got community enthusiasm started. For blockchains a very fast performance correlates with transaction throughput and transaction costs, which implies improved scalability and reduced costs for users.
+
+🤝 pallet-revive
+Parity in late 2024 forked Substrate's pallet-contracts into a new project called pallet-revive. Smart contracts that are uploaded to this new pallet have to be in the RISC-V bytecode format, and no longer in WebAssembly.
+
+Besides the contract binary format, a number of other significant changes were made to provide first-class support for Solidity contracts:
+
+Extensive changes were made in the inner logic of the pallet to bring its behavior closer to the EVM (e.g. types, events, and debugging was changed to be Solidity compatible).
+
+In the pallet-contracts era, the idea for Solidity compatibility was a project called Solang. It's a Solidity compiler that parses Solidity syntax and outputs WebAssembly. Parsing the Solidity syntax turned out to be a complex undertaking. Solidity as a language is also evolving and provided a moving target.
+
+As an iteration on that approach, for pallet-revive Parity started a new project called revive ᠆ a compiler from the Solidity bytecode YUL to a RISC-V contract that can be executed on pallet-revive. This bytecode is more stable than the language syntax. Plus Solidity developers can continue to use the Solidity compiler solc to compile their contracts.
+
+An RPC wrapper that maps Ethereum RPC's onto Substrate was created.
+
+At the time of writing, pallet-revive is deployed to the Polkadot testnet Westend (on the AssetHub parachain). A launch on Polkadot's canary network Kusama is targeted for early Q2/25. The Polkadot launch is targeted for Q3/25.
+
+🙌 Migrating ink! to RISC-V + PolkaVM + pallet-revive
+pallet-revive and RISC-V are seen as the future of smart contracts in the Polkadot ecosystem. We agree with that vision and are excited to work on making the ink! stack ready for it! In autumn 2024 the ink! Alliance created a Polkadot treasury proposal around this. The Polkadot community signaled its alignment and gave us the mandate of migrating ink! to this new stack.
+
+Hence, v5 of ink! and cargo-contract were the last versions supporting pallet-contracts and Wasm. We can still backport important fixes, but the coming releases (>= v6) will all no longer be compatible. In case you want to create a PR for a backport, we have v5 release branches here and here.
+
+We have created this migration guide from ink! v5 to v6. All breaking changes and new features are documented there.
+
+What has not yet been migrated is Contracts UI and external libraries (such as ink!athon, the ink! Analyzer VS Code extension, polkadot-js, …). We are in contact with the maintainers of these external libraries about migrating them as well.
