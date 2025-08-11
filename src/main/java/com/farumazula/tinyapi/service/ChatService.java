@@ -69,7 +69,6 @@ public class ChatService {
     public SseEmitter proceedInteraction(NewChatMessageDto newChatMessageDto) {
         log.info("Sending chat prompt {}", newChatMessageDto);
         var sseEmitter = new SseEmitter(0L);
-        var chatResponse = new StringBuilder();
         var chatId = newChatMessageDto.chatId();
 
         chatClient.prompt(newChatMessageDto.prompt())
@@ -79,28 +78,19 @@ public class ChatService {
                 .subscribe(
                         response -> {
                             log.info("Chat response {}", response.getResult().getOutput().getText());
-                            processToken(response, sseEmitter, chatResponse);
+                            processToken(response, sseEmitter);
                         },
                         sseEmitter::completeWithError,
                         sseEmitter::complete
                 );
-        chatRepository.findById(chatId).ifPresent(chat -> {
-            chat.addMessage(ChatEntry.builder()
-                    .id(UUID.randomUUID().toString())
-                    .author(ChatEntryAuthor.ASSISTANT)
-                    .content(chatResponse.toString())
-                    .build());
-            chatRepository.save(chat);
-        });
         return sseEmitter;
     }
 
     @SneakyThrows
-    private void processToken(ChatResponse response, SseEmitter sseEmitter, StringBuilder responseBuilder) {
+    private void processToken(ChatResponse response, SseEmitter sseEmitter) {
         var resp = response.getResult().getOutput().getText();
         if (resp != null) {
             sseEmitter.send(resp);
-            responseBuilder.append(resp);
         } else {
             log.warn("No response from chat service");
         }

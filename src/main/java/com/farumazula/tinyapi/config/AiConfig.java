@@ -4,6 +4,7 @@ import com.farumazula.tinyapi.memories.MongoChatMemory;
 import com.farumazula.tinyapi.repository.ChatRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -43,6 +44,7 @@ public class AiConfig {
         return builder
                 .defaultAdvisors(
                         historyAdvisor(),
+                        SimpleLoggerAdvisor.builder().build(),
                         ragAdvisor())
                 .build();
     }
