@@ -44,7 +44,7 @@ public class DocumentLoaderService {
                 .filter(pair -> !documentRepository.existsByFilenameAndContentHash(
                         pair.getFirst().getFilename(),
                         pair.getSecond()
-                ))
+                ).blockOptional().orElse(false))
                 .forEach(pair -> {
                     var resource = pair.getFirst();
                     var contentHash = pair.getSecond();
@@ -62,7 +62,7 @@ public class DocumentLoaderService {
                             .documentType("txt")
                             .build();
                     log.info("Saving document {}", loadedDocument);
-                    documentRepository.save(loadedDocument);
+                    documentRepository.save(loadedDocument).block();
                 });
     }
 

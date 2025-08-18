@@ -8,11 +8,10 @@ import com.farumazula.tinyapi.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
 
 /**
  * @author Ma1iket
@@ -27,42 +26,31 @@ public class ChatController {
     private final ChatService chatService;
 
     @GetMapping("/all")
-    public ResponseEntity<List<SimpleChatDto>> findAllChats() {
+    public Flux<SimpleChatDto> findAllChats() {
         log.info("findAllChats");
-        return ResponseEntity.ok(chatService.findAllChats());
+        return chatService.findAllChats();
     }
 
     @GetMapping("/{chatId}")
-    public ResponseEntity<ChatDto> findChatById(@PathVariable String chatId) {
+    public Mono<ChatDto> findChatById(@PathVariable String chatId) {
         log.debug("findChatById {}", chatId);
-        return chatService.findChatById(chatId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/last")
-    public ResponseEntity<ChatDto> findLastChat() {
-        log.info("findLastChat");
-        return chatService.findLastChat()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return chatService.findChatById(chatId);
     }
 
     @PostMapping
-    public ResponseEntity<SimpleChatDto> createChat(@RequestBody NewChatDto chat) {
+    public Mono<SimpleChatDto> createChat(@RequestBody NewChatDto chat) {
         log.debug("createChat {}", chat);
-        return ResponseEntity.ok(chatService.createChat(chat));
+        return chatService.createChat(chat);
     }
 
     @DeleteMapping("/{chatId}")
-    public ResponseEntity<Void> deleteChatById(@PathVariable String chatId) {
+    public Mono<Void> deleteChatById(@PathVariable String chatId) {
         log.debug("deleteChatById {}", chatId);
-        chatService.deleteChat(chatId);
-        return ResponseEntity.ok().build();
+        return chatService.deleteChat(chatId);
     }
 
     @PostMapping(value = "/send/prompt", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter sendPrompt(@RequestBody NewChatMessageDto chatMessageDto) {
+    public Flux<String> sendPrompt(@RequestBody NewChatMessageDto chatMessageDto) {
         log.debug("sendChatMessage {}", chatMessageDto);
         return chatService.proceedInteraction(chatMessageDto);
     }

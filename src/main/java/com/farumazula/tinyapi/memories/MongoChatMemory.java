@@ -5,6 +5,7 @@ import com.farumazula.tinyapi.repository.ChatRepository;
 import lombok.Builder;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.lang.NonNull;
 
 import java.util.Comparator;
 import java.util.List;
@@ -20,18 +21,19 @@ public class MongoChatMemory implements ChatMemory {
     private int maxMessages;
 
     @Override
-    public void add(String conversationId, List<Message> messages) {
+    public void add(@NonNull String conversationId, List<Message> messages) {
         chatMemoryRepository.addChatEntries(conversationId,
                 messages
                         .stream()
                         .map(ChatEntry::fromMessage)
                         .filter(chatEntry -> !chatEntry.getContent().isEmpty())
-                        .toList());
+                        .toList()).blockOptional();
     }
 
+    @NonNull
     @Override
-    public List<Message> get(String conversationId) {
-        var chat = chatMemoryRepository.findById(conversationId);
+    public List<Message> get(@NonNull String conversationId) {
+        var chat = chatMemoryRepository.findById(conversationId).blockOptional();
         if (chat.isEmpty()) {
             return List.of();
         }
@@ -46,7 +48,7 @@ public class MongoChatMemory implements ChatMemory {
     }
 
     @Override
-    public void clear(String conversationId) {
+    public void clear(@NonNull String conversationId) {
         //not implemented
     }
 }
