@@ -36,8 +36,10 @@ public class MongoChatMemory implements ChatMemory {
             return List.of();
         }
         var messages = chat.get().getHistory();
+        var messagesToSkip = Math.max(0, messages.size() - maxMessages);
 
         return messages.stream()
+                .skip(messagesToSkip)
                 .sorted(Comparator.comparing(ChatEntry::getCreatedAt))
                 .map(ChatEntry::toMessage)
                 .toList();

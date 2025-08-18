@@ -30,8 +30,4 @@ public class Chat {
     private LocalDateTime createdAt;
     @Builder.Default
     private List<ChatEntry> history = new ArrayList<>();
-
-    public void addMessage(ChatEntry chatEntry) {
-        history.add(chatEntry);
-    }
 }
