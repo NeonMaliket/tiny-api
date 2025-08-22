@@ -4,9 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.BsonDateTime;
+import org.bson.Document;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 /**
@@ -20,6 +26,7 @@ import java.util.UUID;
 public class ChatEntry {
     private String id;
     private String content;
+    @Field(targetType = FieldType.DATE_TIME)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
     private ChatEntryAuthor author;

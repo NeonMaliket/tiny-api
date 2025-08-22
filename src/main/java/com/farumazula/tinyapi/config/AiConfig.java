@@ -4,7 +4,6 @@ import com.farumazula.tinyapi.memories.MongoChatMemory;
 import com.farumazula.tinyapi.repository.ChatRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -44,14 +43,14 @@ public class AiConfig {
     public ChatClient chatClient(final ChatClient.Builder builder) {
         return builder
                 .defaultAdvisors(
-                        historyAdvisor(1),
-                        SimpleLoggerAdvisor.builder()
-                                .order(2)
-                                .build(),
-                        ragAdvisor(3),
-                        SimpleLoggerAdvisor.builder()
-                                .order(4)
-                                .build()
+                        historyAdvisor(1)
+//                        SimpleLoggerAdvisor.builder()
+//                                .order(3)
+//                                .build(),
+//                        ragAdvisor(4),
+//                        SimpleLoggerAdvisor.builder()
+//                                .order(5)
+//                                .build()
                 )
                 .defaultOptions(OllamaOptions.builder()
                         .temperature(0.3)

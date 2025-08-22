@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ public class Chat {
     @Id
     private String id;
     private String title;
+    @Field(targetType = FieldType.DATE_TIME)
     @CreatedDate
     private LocalDateTime createdAt;
     @Builder.Default
