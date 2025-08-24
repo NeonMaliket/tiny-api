@@ -2,17 +2,14 @@ package com.farumazula.tinyapi.service;
 
 import com.farumazula.tinyapi.dto.*;
 import com.farumazula.tinyapi.entity.Chat;
-import com.farumazula.tinyapi.entity.ChatEntry;
+import com.farumazula.tinyapi.entity.ChatMessage;
 import com.farumazula.tinyapi.events.StreamMessagesEvent;
 import com.farumazula.tinyapi.repository.ChatRepository;
-import com.mongodb.client.model.changestream.OperationType;
 import lombok.extern.log4j.Log4j2;
-import org.bson.Document;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.ChangeStreamOptions;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
@@ -20,9 +17,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author Ma1iket
@@ -85,34 +79,15 @@ public class ChatService {
         Flux<ServerSentEvent<ChatMessageDto>> history =
                 chatRepository.findById(chatId)
                         .flatMapMany(c -> Flux.fromIterable(c.getHistory()))
-                        .sort(Comparator.comparing(ChatEntry::getCreatedAt))
+                        .sort(Comparator.comparing(ChatMessage::getCreatedAt))
                         .map(ChatMessageDto::from)
                         .map(StreamMessagesEvent.HISTORY::toSentEvent);
         var live = mongo
                 .changeStream(Chat.class)
                 .watchCollection(Chat.class)
                 .listen()
-                .filter(event -> chatId.equals(event.getRaw().getDocumentKey().get("_id").asObjectId().getValue().toString()))
-                .filter(event -> event.getOperationType() == OperationType.UPDATE)
-                .flatMapIterable(event -> {
-                    var row = event.getRaw();
-                    if (row == null) {
-                        return List.of();
-                    }
-                    var updateDescription = row.getUpdateDescription();
-                    if (updateDescription == null || updateDescription.getUpdatedFields() == null) {
-                        return List.of();
-                    }
-
-                    return updateDescription.getUpdatedFields().entrySet().stream()
-                            .filter(e -> e.getKey().startsWith("history."))
-                            .map(Map.Entry::getValue)
-                            .filter(Map.class::isInstance)
-                            .map(Map.class::cast)
-                            .map(m -> mongo.getConverter()
-                                    .read(ChatEntry.class, new org.bson.Document(m)))
-                            .toList();
-                })
+                .filter(x -> x.getBody() != null && !x.getBody().getHistory().isEmpty())
+                .map(x -> x.getBody().getHistory().getLast())
                 .map(entry -> StreamMessagesEvent.NEW_MESSAGE.toSentEvent(ChatMessageDto.from(entry)));
         return Flux.concat(history, live);
     }

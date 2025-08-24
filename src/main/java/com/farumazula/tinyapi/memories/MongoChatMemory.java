@@ -1,6 +1,6 @@
 package com.farumazula.tinyapi.memories;
 
-import com.farumazula.tinyapi.entity.ChatEntry;
+import com.farumazula.tinyapi.entity.ChatMessage;
 import com.farumazula.tinyapi.repository.ChatRepository;
 import lombok.Builder;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -25,7 +25,7 @@ public class MongoChatMemory implements ChatMemory {
         chatMemoryRepository.addChatEntries(conversationId,
                 messages
                         .stream()
-                        .map(ChatEntry::fromMessage)
+                        .map(ChatMessage::fromMessage)
                         .filter(chatEntry -> !chatEntry.getContent().isEmpty())
                         .toList()).blockOptional();
     }
@@ -42,8 +42,8 @@ public class MongoChatMemory implements ChatMemory {
 
         return messages.stream()
                 .skip(messagesToSkip)
-                .sorted(Comparator.comparing(ChatEntry::getCreatedAt))
-                .map(ChatEntry::toMessage)
+                .sorted(Comparator.comparing(ChatMessage::getCreatedAt))
+                .map(ChatMessage::toMessage)
                 .toList();
     }
 

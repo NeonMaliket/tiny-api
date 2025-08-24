@@ -32,5 +32,5 @@ public class Chat {
     @CreatedDate
     private LocalDateTime createdAt;
     @Builder.Default
-    private List<ChatEntry> history = new ArrayList<>();
+    private List<ChatMessage> history = new ArrayList<>();
 }

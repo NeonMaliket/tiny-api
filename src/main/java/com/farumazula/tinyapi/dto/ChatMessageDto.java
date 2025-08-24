@@ -1,7 +1,6 @@
 package com.farumazula.tinyapi.dto;
 
-import com.farumazula.tinyapi.entity.ChatEntry;
-import com.farumazula.tinyapi.entity.ChatEntryAuthor;
+import com.farumazula.tinyapi.entity.ChatMessage;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -17,20 +16,12 @@ public record ChatMessageDto(
         LocalDateTime createdAt,
         String author
 ) {
-    public static ChatMessageDto from(ChatEntry chatEntry) {
+    public static ChatMessageDto from(ChatMessage chatMessage) {
         return ChatMessageDto.builder()
-                .id(chatEntry.getId())
-                .content(chatEntry.getContent())
-                .createdAt(chatEntry.getCreatedAt())
-                .author(chatEntry.getAuthor().getValue())
-                .build();
-    }
-
-    public ChatEntry toEntry() {
-        return ChatEntry.builder()
-                .id(id)
-                .content(content)
-                .author(ChatEntryAuthor.fromValue(author).orElseThrow())
+                .id(chatMessage.getId())
+                .content(chatMessage.getContent())
+                .createdAt(chatMessage.getCreatedAt())
+                .author(chatMessage.getAuthor().getValue())
                 .build();
     }
 }
