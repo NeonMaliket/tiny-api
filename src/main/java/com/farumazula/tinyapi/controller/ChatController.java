@@ -48,10 +48,4 @@ public class ChatController {
         log.debug("deleteChatById {}", chatId);
         return chatService.deleteChat(chatId);
     }
-
-    @PostMapping(value = "/send/prompt", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> sendPrompt(@RequestBody NewChatMessageDto chatMessageDto) {
-        log.debug("sendChatMessage {}", chatMessageDto);
-        return chatService.proceedInteraction(chatMessageDto);
-    }
 }
