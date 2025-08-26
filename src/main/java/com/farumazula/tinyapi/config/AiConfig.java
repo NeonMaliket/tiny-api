@@ -1,7 +1,7 @@
 package com.farumazula.tinyapi.config;
 
 import com.farumazula.tinyapi.memories.MongoChatMemory;
-import com.farumazula.tinyapi.repository.ChatRepository;
+import com.farumazula.tinyapi.repository.ChatMessageRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
@@ -27,7 +27,7 @@ public class AiConfig {
 
     @Lazy
     @Autowired
-    private ChatRepository chatRepository;
+    private ChatMessageRepository chatMessageRepository;
 
     @Lazy
     @Autowired
@@ -78,7 +78,7 @@ public class AiConfig {
     private ChatMemory chatMemory() {
         return MongoChatMemory.builder()
                 .maxMessages(10)
-                .chatMemoryRepository(chatRepository)
+                .chatMemoryRepository(chatMessageRepository)
                 .build();
     }
 }

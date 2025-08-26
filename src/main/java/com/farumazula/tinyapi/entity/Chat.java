@@ -11,8 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Ma1iket
@@ -31,6 +29,4 @@ public class Chat {
     @Field(targetType = FieldType.DATE_TIME)
     @CreatedDate
     private LocalDateTime createdAt;
-    @Builder.Default
-    private List<ChatMessage> history = new ArrayList<>();
 }

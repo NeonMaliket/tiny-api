@@ -14,20 +14,14 @@ import java.util.List;
 public record ChatDto(
         String id,
         String title,
-        LocalDateTime createdAt,
-        List<ChatMessageDto> history
+        LocalDateTime createdAt
 ) {
 
     public static ChatDto from(Chat chat) {
-        var history = chat.getHistory()
-                .stream()
-                .map(ChatMessageDto::from)
-                .toList();
         return ChatDto.builder()
                 .id(chat.getId())
                 .title(chat.getTitle())
                 .createdAt(chat.getCreatedAt())
-                .history(history)
                 .build();
     }
 
