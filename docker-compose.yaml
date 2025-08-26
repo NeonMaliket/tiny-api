@@ -8,10 +8,12 @@ services:
       - "6379:6379"
     environment:
       REDIS_ARGS: "--requirepass mypassword --user username on > mypassword ~* allcommands --user default off nopass nocommands"
+    volumes:
+      - "redis-data:/data"
     restart: always
 
   mongo_rs0:
-    image: mongo:7.0
+    image: mongo:latest
     command: [ "--replSet", "rs0", "--bind_ip_all", "--port", "27017" ]
     ports:
       - "27017:27017"
@@ -36,11 +38,11 @@ services:
       - ollama-data:/root/.ollama
     entrypoint:
       /bin/sh -c "
-        ollama serve &
-        sleep 2 &&
-        ollama pull gemma:2b &&
-        ollama pull mxbai-embed-large &&
-        wait
+      ollama serve &
+      sleep 2 &&
+      ollama pull gemma:2b &&
+      ollama pull mxbai-embed-large &&
+      wait
       "
     restart: unless-stopped
 
@@ -48,3 +50,4 @@ volumes:
   mongo-data:
   mongo-config:
   ollama-data:
+  redis-data:

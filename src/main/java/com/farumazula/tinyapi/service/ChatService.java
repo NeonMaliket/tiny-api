@@ -1,23 +1,16 @@
 package com.farumazula.tinyapi.service;
 
-import com.farumazula.tinyapi.dto.*;
-import com.farumazula.tinyapi.entity.Chat;
-import com.farumazula.tinyapi.entity.ChatMessage;
-import com.farumazula.tinyapi.events.StreamMessagesEvent;
+import com.farumazula.tinyapi.dto.ChatDto;
+import com.farumazula.tinyapi.dto.NewChatDto;
+import com.farumazula.tinyapi.dto.SimpleChatDto;
 import com.farumazula.tinyapi.repository.ChatMessageRepository;
 import com.farumazula.tinyapi.repository.ChatRepository;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.Comparator;
 
 /**
  * @author Ma1iket

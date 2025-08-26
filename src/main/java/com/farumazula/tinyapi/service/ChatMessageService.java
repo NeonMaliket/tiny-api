@@ -5,6 +5,7 @@ import com.farumazula.tinyapi.dto.MessageChunk;
 import com.farumazula.tinyapi.dto.NewChatMessageDto;
 import com.farumazula.tinyapi.entity.ChatMessage;
 import com.farumazula.tinyapi.events.StreamMessagesEvent;
+import com.farumazula.tinyapi.exceptions.ChatNotFoundException;
 import com.farumazula.tinyapi.repository.ChatMessageRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.ai.chat.client.ChatClient;
@@ -29,27 +30,30 @@ import java.util.Comparator;
 public class ChatMessageService {
 
     @Autowired
+    private ChatService chatService;
+    @Autowired
     private ChatMessageRepository chatMessageRepository;
     @Autowired
     private ChatClient chatClient;
     @Autowired
     private ReactiveMongoTemplate mongo;
 
-
     public Flux<MessageChunk> streamMessage(NewChatMessageDto messageRequest) {
         log.info("Streaming message for: {}", messageRequest);
         var chatId = messageRequest.chatId();
-        return chatClient.prompt(messageRequest.prompt())
-                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, chatId))
-                .stream()
-                .chatResponse()
-                .flatMap(response -> {
-                    var metadata = response.getMetadata();
-                    var usage = metadata.getUsage();
-                    var text = response.getResult().getOutput().getText();
-                    var isLast = usage.getCompletionTokens() != 0;
-                    return Mono.just(new MessageChunk(text, isLast));
-                });
+
+        return chatService.findChatById(chatId).switchIfEmpty(Mono.error(new ChatNotFoundException(chatId)))
+                .thenMany(chatClient.prompt(messageRequest.prompt())
+                        .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, chatId))
+                        .stream()
+                        .chatResponse()
+                        .flatMap(response -> {
+                            var metadata = response.getMetadata();
+                            var usage = metadata.getUsage();
+                            var text = response.getResult().getOutput().getText();
+                            var isLast = usage.getCompletionTokens() != 0;
+                            return Mono.just(new MessageChunk(text, isLast));
+                        }));
     }
 
     public Flux<ServerSentEvent<ChatMessageDto>> streamMessages(String chatId) {
