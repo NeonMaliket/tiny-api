@@ -1,12 +1,15 @@
 package com.farumazula.tinyapi.service;
 
+import io.minio.GetObjectArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -14,6 +17,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 /**
  * @author Ma1iket
@@ -63,5 +67,18 @@ public class DocumentService {
                 .then();
     }
 
+    public Flux<DataBuffer> download(String bucket, String object) {
+        return Mono.fromCallable(() -> minioClient.getObject(
+                        GetObjectArgs.builder().bucket(bucket).object(object).build()))
+                .subscribeOn(boundedElastic)
+                .flatMapMany(is ->
+                        DataBufferUtils.readInputStream(() -> is,
+                                        new DefaultDataBufferFactory(),
+                                        64 * 1024)
+                                .doFinally(sig -> Mono.fromRunnable(() -> {
+                                    try { is.close(); } catch (IOException ignored) {}
+                                }).subscribeOn(boundedElastic).subscribe())
+                );
+    }
 
 }
