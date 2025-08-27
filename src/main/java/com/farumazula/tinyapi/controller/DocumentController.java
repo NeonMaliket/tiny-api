@@ -30,6 +30,7 @@ public class DocumentController {
     @PostMapping("/bucket/{bucket}/save")
     public Mono<Void> saveToBucket(@PathVariable String bucket,
                                    @RequestPart("file") Flux<FilePart> filePartFlux) {
+        log.info("Saving file to bucket {}", bucket);
         return documentService.saveToBucket(bucket, filePartFlux);
     }
 }
