@@ -27,6 +27,4 @@ public class MinioConfig {
                 .credentials(springMinioUsername, springMinioPassword)
                 .build();
     }
-
-
 }

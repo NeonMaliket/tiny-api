@@ -1,9 +1,7 @@
 package com.farumazula.tinyapi.service;
 
-import io.minio.GetObjectArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
+import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,8 @@ import reactor.core.scheduler.Scheduler;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import static com.farumazula.tinyapi.utils.ApplicationConstants.MAIN_STORAGE_BUCKET;
+
 /**
  * @author Ma1iket
  **/
@@ -31,6 +31,21 @@ public class DocumentService {
     private Scheduler boundedElastic;
     @Autowired
     private MinioClient minioClient;
+
+
+    @PostConstruct
+    @SneakyThrows
+    public void init() {
+        var isMainBucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(MAIN_STORAGE_BUCKET).build());
+        if (!isMainBucketExists) {
+            log.info("Creating main bucket {}", MAIN_STORAGE_BUCKET);
+            minioClient.makeBucket(
+                    MakeBucketArgs.builder()
+                            .bucket(MAIN_STORAGE_BUCKET)
+                            .build()
+            );
+        }
+    }
 
     @SneakyThrows
     public Mono<Void> createBucket(String name) {
