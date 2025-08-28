@@ -1,6 +1,5 @@
 package com.farumazula.tinyapi.entity;
 
-import com.mongodb.lang.NonNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

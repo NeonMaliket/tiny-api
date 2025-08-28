@@ -40,6 +40,17 @@ services:
       - "minio-data:/data"
     command: server /data --console-address ":9001"
 
+  create-minio-buckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minio miniominio;
+      /usr/bin/mc mb myminio/main-storage;
+      exit 0;
+      "
+
   ollama:
     image: ollama/ollama
     container_name: ollama

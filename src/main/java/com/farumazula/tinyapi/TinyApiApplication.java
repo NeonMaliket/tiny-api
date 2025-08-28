@@ -5,9 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.config.EnableReactiveMongoAuditing;
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 
+@SpringBootApplication
 @EnableReactiveMongoAuditing
 @EnableReactiveMongoRepositories
-@SpringBootApplication
 public class TinyApiApplication {
 
     public static void main(String[] args) {

@@ -1,8 +1,9 @@
 package com.farumazula.tinyapi.service;
 
-import io.minio.*;
-import jakarta.annotation.PostConstruct;
-import lombok.SneakyThrows;
+import io.minio.GetObjectArgs;
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -17,8 +18,6 @@ import reactor.core.scheduler.Scheduler;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import static com.farumazula.tinyapi.utils.ApplicationConstants.MAIN_STORAGE_BUCKET;
-
 /**
  * @author Ma1iket
  **/
@@ -32,39 +31,11 @@ public class DocumentService {
     @Autowired
     private MinioClient minioClient;
 
-
-    @PostConstruct
-    @SneakyThrows
-    public void init() {
-        var isMainBucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(MAIN_STORAGE_BUCKET).build());
-        if (!isMainBucketExists) {
-            log.info("Creating main bucket {}", MAIN_STORAGE_BUCKET);
-            minioClient.makeBucket(
-                    MakeBucketArgs.builder()
-                            .bucket(MAIN_STORAGE_BUCKET)
-                            .build()
-            );
-        }
-    }
-
-    @SneakyThrows
-    public Mono<Void> createBucket(String name) {
-        return Mono.<Void>fromCallable(() -> {
-            minioClient.makeBucket(
-                    MakeBucketArgs.builder()
-                            .bucket(name)
-                            .build()
-            );
-            return null;
-        }).subscribeOn(boundedElastic);
-    }
-
-
-    public Mono<Void> saveToBucket(String bucket, Flux<FilePart> fileParts) {
+    public Mono<Void> saveToBucket(String filename, String bucket, Flux<FilePart> fileParts) {
         return fileParts
                 .flatMap(filePart -> DataBufferUtils.join(filePart.content())
                         .flatMap(dataBuffer -> Mono.<Void>fromCallable(() -> {
-                            byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                            var bytes = new byte[dataBuffer.readableByteCount()];
                             dataBuffer.read(bytes);
                             DataBufferUtils.release(dataBuffer);
 
@@ -72,7 +43,7 @@ public class DocumentService {
                                 minioClient.putObject(
                                         PutObjectArgs.builder()
                                                 .bucket(bucket)
-                                                .object(filePart.filename())
+                                                .object(filename)
                                                 .stream(in, bytes.length, -1)
                                                 .build()
                                 );
@@ -91,9 +62,24 @@ public class DocumentService {
                                         new DefaultDataBufferFactory(),
                                         64 * 1024)
                                 .doFinally(sig -> Mono.fromRunnable(() -> {
-                                    try { is.close(); } catch (IOException ignored) {}
+                                    try {
+                                        is.close();
+                                    } catch (IOException ignored) {
+                                    }
                                 }).subscribeOn(boundedElastic).subscribe())
                 );
     }
 
+    public Mono<Void> delete(String bucket, String object) {
+        return Mono.<Void>fromCallable(() -> {
+                            minioClient.removeObject(
+                                    RemoveObjectArgs.builder()
+                                            .bucket(bucket)
+                                            .object(object)
+                                            .build());
+                            return null;
+                        }
+                )
+                .subscribeOn(boundedElastic);
+    }
 }

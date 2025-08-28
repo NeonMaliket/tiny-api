@@ -49,7 +49,7 @@ public class ChatService {
         log.info("Deleting chat with id: {}", chatId);
         return chatRepository
                 .deleteById(chatId)
-                .flatMap(v -> chatMessageRepository.deleteAllByChatId(chatId));
+                .then(chatMessageRepository.deleteAllByChatId(chatId));
     }
 }
 

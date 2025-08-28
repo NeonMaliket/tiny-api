@@ -4,7 +4,6 @@ import com.farumazula.tinyapi.entity.Chat;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author Ma1iket
