@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public record DocumentMetadataDto(
         String id,
-        String fileName,
+        String filename,
         String type,
         LocalDateTime createdAt
 ) {
@@ -20,7 +20,7 @@ public record DocumentMetadataDto(
     public static DocumentMetadataDto fromDocumentMetadata(DocumentMetadata metadata) {
         return DocumentMetadataDto.builder()
                 .id(metadata.getId())
-                .fileName(metadata.getFileName())
+                .filename(metadata.getFileName())
                 .type(metadata.getType())
                 .createdAt(metadata.getCreatedAt())
                 .build();

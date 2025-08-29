@@ -30,6 +30,7 @@ public class StorageController {
             @PathVariable String filename,
             @RequestPart("file") Flux<FilePart> filePartFlux
     ) {
+        log.info("'Controller' Upload file: {}", filename);
         return storageService.upload(filename, filePartFlux);
     }
 
