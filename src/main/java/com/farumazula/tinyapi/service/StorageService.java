@@ -2,10 +2,14 @@ package com.farumazula.tinyapi.service;
 
 import com.farumazula.tinyapi.dto.DocumentMetadataDto;
 import com.farumazula.tinyapi.entity.DocumentMetadata;
+import com.farumazula.tinyapi.events.StreamEvent;
 import com.farumazula.tinyapi.repository.DocumentMetadataRepository;
+import com.mongodb.client.model.changestream.OperationType;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -27,6 +31,8 @@ public class StorageService {
     private DocumentService documentService;
     @Autowired
     private DocumentMetadataRepository documentMetadataRepository;
+    @Autowired
+    private ReactiveMongoTemplate mongo;
 
 
     public Mono<DocumentMetadataDto> upload(
@@ -48,14 +54,31 @@ public class StorageService {
                                         metadata.getBucket(),
                                         fileParts
                                 )
-                                .then(Mono.just(DocumentMetadataDto.fromDocumentMetadata(metadata)))
+                                .then(Mono.just(DocumentMetadataDto.from(metadata)))
                 );
     }
 
-    public Flux<DocumentMetadataDto> storageList() {
-        return documentMetadataRepository
+    public Flux<ServerSentEvent<DocumentMetadataDto>> storageList() {
+        var historyDocuments = documentMetadataRepository
                 .findAll()
-                .map(DocumentMetadataDto::fromDocumentMetadata);
+                .map(DocumentMetadataDto::from)
+                .map(StreamEvent.HISTORY::toSentEvent);
+        var live = mongo
+                .changeStream(DocumentMetadata.class)
+                .watchCollection(DocumentMetadata.class)
+                .listen()
+                .filter(x -> x.getOperationType() == OperationType.DELETE || x.getOperationType() == OperationType.INSERT)
+                .map(entry -> {
+                    var body = entry.getBody();
+                    if (entry.getOperationType() != OperationType.DELETE && body != null) {
+                        return StreamEvent.NEW.toSentEvent(DocumentMetadataDto.from(body));
+                    } else {
+                        return StreamEvent.DELETE.toSentEvent(DocumentMetadataDto.builder()
+                                        .id(entry.getRaw().getDocumentKey().get("_id").asObjectId().getValue().toString())
+                                .build());
+                    }
+                });
+        return Flux.concat(historyDocuments, live);
     }
 
     public Flux<DataBuffer> download(final String docId) {

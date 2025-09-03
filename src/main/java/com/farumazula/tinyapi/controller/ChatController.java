@@ -6,6 +6,7 @@ import com.farumazula.tinyapi.dto.SimpleChatDto;
 import com.farumazula.tinyapi.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -23,8 +24,8 @@ public class ChatController {
 
     private final ChatService chatService;
 
-    @GetMapping("/all")
-    public Flux<SimpleChatDto> findAllChats() {
+    @GetMapping("/stream")
+    public Flux<ServerSentEvent<SimpleChatDto>> findAllChats() {
         log.info("findAllChats");
         return chatService.findAllChats();
     }

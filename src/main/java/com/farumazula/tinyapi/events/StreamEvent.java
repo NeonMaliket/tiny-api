@@ -1,6 +1,5 @@
 package com.farumazula.tinyapi.events;
 
-import com.farumazula.tinyapi.dto.ChatMessageDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.codec.ServerSentEvent;
@@ -11,14 +10,16 @@ import org.springframework.http.codec.ServerSentEvent;
 
 @Getter
 @RequiredArgsConstructor
-public enum StreamMessagesEvent {
+public enum StreamEvent {
     HISTORY("history"),
-    NEW_MESSAGE("new_message");
+    DELETE("delete"),
+    UNSUPPORTED("unsupported"),
+    NEW("new");
 
     private final String value;
 
-    public ServerSentEvent<ChatMessageDto> toSentEvent(ChatMessageDto chatMessageDto) {
-        return ServerSentEvent.builder(chatMessageDto)
+    public <T> ServerSentEvent<T> toSentEvent(T obj) {
+        return ServerSentEvent.builder(obj)
                 .event(value)
                 .build();
     }

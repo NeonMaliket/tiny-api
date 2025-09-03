@@ -4,7 +4,7 @@ import com.farumazula.tinyapi.dto.ChatMessageDto;
 import com.farumazula.tinyapi.dto.MessageChunk;
 import com.farumazula.tinyapi.dto.NewChatMessageDto;
 import com.farumazula.tinyapi.entity.ChatMessage;
-import com.farumazula.tinyapi.events.StreamMessagesEvent;
+import com.farumazula.tinyapi.events.StreamEvent;
 import com.farumazula.tinyapi.exceptions.ChatNotFoundException;
 import com.farumazula.tinyapi.repository.ChatMessageRepository;
 import lombok.extern.log4j.Log4j2;
@@ -62,7 +62,7 @@ public class ChatMessageService {
                 chatMessageRepository.findByChatId(chatId)
                         .sort(Comparator.comparing(ChatMessage::getCreatedAt))
                         .map(ChatMessageDto::from)
-                        .map(StreamMessagesEvent.HISTORY::toSentEvent);
+                        .map(StreamEvent.HISTORY::toSentEvent);
         var live = mongo
                 .changeStream(ChatMessage.class)
                 .watchCollection(ChatMessage.class)
@@ -70,7 +70,7 @@ public class ChatMessageService {
                 .listen()
                 .filter(x -> x.getBody() != null)
                 .map(ChangeStreamEvent::getBody)
-                .map(entry -> StreamMessagesEvent.NEW_MESSAGE.toSentEvent(ChatMessageDto.from(entry)));
+                .map(entry -> StreamEvent.NEW.toSentEvent(ChatMessageDto.from(entry)));
         return Flux.concat(history, live);
     }
 }

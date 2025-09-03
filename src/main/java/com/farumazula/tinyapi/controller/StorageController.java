@@ -8,6 +8,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -35,7 +36,7 @@ public class StorageController {
     }
 
     @GetMapping
-    public Flux<DocumentMetadataDto> storageList() {
+    public Flux<ServerSentEvent<DocumentMetadataDto>> storageList() {
         log.info("'Controller' Storage List");
         return storageService.storageList();
     }

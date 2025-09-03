@@ -17,7 +17,7 @@ public record DocumentMetadataDto(
         LocalDateTime createdAt
 ) {
 
-    public static DocumentMetadataDto fromDocumentMetadata(DocumentMetadata metadata) {
+    public static DocumentMetadataDto from(DocumentMetadata metadata) {
         return DocumentMetadataDto.builder()
                 .id(metadata.getId())
                 .filename(metadata.getFileName())
