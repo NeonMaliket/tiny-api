@@ -59,6 +59,7 @@ public class StorageService {
     }
 
     public Flux<ServerSentEvent<DocumentMetadataDto>> storageList() {
+        log.info("Listing all files in storage");
         var historyDocuments = documentMetadataRepository
                 .findAll()
                 .map(DocumentMetadataDto::from)
@@ -82,10 +83,12 @@ public class StorageService {
     }
 
     public Flux<DataBuffer> download(final String docId) {
+        log.info("Downloading file from storage: {}", docId);
         return documentService.download(MAIN_STORAGE_BUCKET, docId);
     }
 
     public Mono<Void> delete(final String docId) {
+        log.info("Deleting file from storage: {}", docId);
         return documentMetadataRepository
                 .deleteById(docId)
                 .then(documentService.delete(MAIN_STORAGE_BUCKET, docId));
