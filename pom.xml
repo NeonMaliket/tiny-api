@@ -13,6 +13,7 @@
     <artifactId>tiny-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>tiny-api</name>
+    <packaging>jar</packaging>
     <description>tiny-api</description>
     <url/>
     <licenses>

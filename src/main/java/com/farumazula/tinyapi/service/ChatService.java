@@ -4,6 +4,7 @@ import com.farumazula.tinyapi.dto.ChatDto;
 import com.farumazula.tinyapi.dto.NewChatDto;
 import com.farumazula.tinyapi.dto.SimpleChatDto;
 import com.farumazula.tinyapi.entity.Chat;
+import com.farumazula.tinyapi.entity.ChatMetadata;
 import com.farumazula.tinyapi.events.StreamEvent;
 import com.farumazula.tinyapi.repository.ChatMessageRepository;
 import com.farumazula.tinyapi.repository.ChatRepository;
@@ -64,7 +65,9 @@ public class ChatService {
 
     public Mono<SimpleChatDto> createChat(NewChatDto newChatDto) {
         log.info("Creating chat {}", newChatDto);
-        var saved = chatRepository.save(newChatDto.asChat());
+        var chat = newChatDto.asChat();
+        chat.setMetadata(ChatMetadata.builder().build());
+        var saved = chatRepository.save(chat);
         return saved.map(SimpleChatDto::from);
     }
 

@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public record SimpleChatDto(
         String id,
         String title,
+        String logoImageId,
         LocalDateTime createdAt
 ) {
 
@@ -21,6 +22,7 @@ public record SimpleChatDto(
                 .id(chat.getId())
                 .title(chat.getTitle())
                 .createdAt(chat.getCreatedAt())
+                .logoImageId(chat.getMetadata().getLogoImageId())
                 .build();
     }
 

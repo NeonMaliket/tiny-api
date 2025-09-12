@@ -29,4 +29,5 @@ public class Chat {
     @Field(targetType = FieldType.DATE_TIME)
     @CreatedDate
     private LocalDateTime createdAt;
+    private ChatMetadata metadata;
 }
